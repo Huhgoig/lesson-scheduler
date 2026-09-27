@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Universal Student Lesson Scheduler</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg-main: #f8fafc;
+            --surface: #ffffff;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+            --radius: 12px;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text-dark);
+            padding: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 1150px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        /* Top Bar & Student Selector */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            padding: 20px 24px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .header-titles h1 {
+            font-size: 1.5rem;
+            color: var(--text-dark);
+        }
+
+        .header-titles p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+
+        .controls-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .student-select-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+
+        .student-select-box label {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--text-muted);
+        }
+
+        .student-select-box select {
+            background: transparent;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            outline: none;
+            cursor: pointer;
+        }
+
+        .btn-action {
+            background-color: var(--surface);
+            border: 1px solid var(--border-color);
+            color: var(--text-dark);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-action:hover {
+            background-color: #f1f5f9;
+            border-color: #cbd5e1;
+        }
+
+        .btn-export {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 9px 18px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-export:hover {
+            background-color: var(--primary-hover);
+        }
+
+        /* Navigation Tabs & Year Controls */
+        .tabs-nav-container {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: var(--surface);
+            padding: 8px 12px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .year-controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-right: 12px;
+            border-right: 2px solid var(--bg-main);
+        }
+
+        .year-btn {
+            background: #f1f5f9;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            width: 32px;
+            height: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            color: var(--text-dark);
+            transition: background 0.2s;
+        }
+
+        .year-btn:hover {
+            background: #e2e8f0;
+        }
+
+        .year-display {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--primary);
+            min-width: 50px;
+            text-align: center;
+        }
+
+        .tabs-nav {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            flex: 1;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s ease;
+        }
+
+        .tab-btn:hover {
+            background-color: #f1f5f9;
+            color: var(--text-dark);
+        }
+
+        .tab-btn.active {
+            background-color: var(--primary);
+            color: #ffffff;
+        }
+
+        /* Calendar View */
+        .calendar-card {
+            background: var(--surface);
+            border-radius: var(--radius);
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+
+        .calendar-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid var(--bg-main);
+            padding-bottom: 12px;
+        }
+
+        .calendar-header h2 {
+            font-size: 1.75rem;
+            color: var(--primary);
+        }
+
+        .weekdays-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+            text-align: center;
+            font-weight: 700;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        .day-cell {
+            min-height: 110px;
+            background-color: #fafafa;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .day-cell.empty {
+            background-color: transparent;
+            border: 1px dashed transparent;
+        }
+
+        .day-number {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+        }
+
+        .lesson-slot {
+            padding: 6px 8px;
+            border-radius: 6px;
+            color: #ffffff;
+            font-size: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            word-break: break-word;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .btn-add-lesson {
+            margin-top: auto;
+            background: transparent;
+            border: 1px dashed var(--border-color);
+            color: var(--text-muted);
+            padding: 4px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-add-lesson:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: #eef2ff;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal {
+            background: var(--surface);
+            padding: 24px;
+            border-radius: var(--radius);
+            width: 100%;
+            max-width: 440px;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .modal h3 {
+            font-size: 1.25rem;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+
+        .color-pickers {
+            display: flex;
+            gap: 10px;
+        }
+
+        .color-option {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.2s;
+        }
+
+        .color-option.selected {
+            border-color: var(--text-dark);
+            transform: scale(1.15);
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .btn-secondary {
+            background: #e2e8f0;
+            color: var(--text-dark);
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-danger {
+            background: #ef4444;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        /* Version & Manage List Styling */
+        .item-list {
+            max-height: 240px;
+            overflow-y: auto;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .list-row {
+            padding: 10px 12px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+        }
+
+        .list-row:last-child {
+            border-bottom: none;
+        }
+
+        .row-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .row-title {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .row-subtitle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header & Controls -->
+        <header>
+            <div class="header-titles">
+                <h1>Lesson Schedule Planner</h1>
+                <p>Manage student schedules across any year with version history</p>
+            </div>
+            
+            <div class="controls-group">
+                <div class="student-select-box">
+                    <label for="studentSelect">Student:</label>
+                    <select id="studentSelect" onchange="switchStudent()"></select>
+                </div>
+
+                <button class="btn-action" onclick="openNewStudentModal()">+ New Student</button>
+                <button class="btn-action" onclick="openManageStudentsModal()">⚙️ Manage</button>
+                <button class="btn-action" onclick="openHistoryModal()">⏱️ History</button>
+                <button class="btn-export" onclick="exportToPNG()">📷 Export PNG</button>
+            </div>
+        </header>
+
+        <!-- Dynamic Year Controls & Navigation Tabs -->
+        <div class="tabs-nav-container">
+            <div class="year-controls">
+                <button class="year-btn" onclick="changeYear(-1)">&lt;</button>
+                <span class="year-display" id="yearDisplay">2026</span>
+                <button class="year-btn" onclick="changeYear(1)">&gt;</button>
+            </div>
+            <nav class="tabs-nav" id="tabsContainer"></nav>
+        </div>
+
+        <!-- Calendar Display -->
+        <main class="calendar-card" id="calendarCard">
+            <div class="calendar-header">
+                <h2 id="calendarMonthTitle">January 2026</h2>
+                <span id="calendarStudentTitle" style="color: var(--text-muted); font-weight: 600;">Alex Smith's Schedule</span>
+            </div>
+            
+            <div class="weekdays-grid">
+                <div>Sun</div><div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div>
+            </div>
+
+            <div class="days-grid" id="daysGrid"></div>
+        </main>
+    </div>
+
+    <!-- Lesson Edit Modal -->
+    <div class="modal-overlay" id="lessonModal">
+        <div class="modal">
+            <h3 id="modalTitle">Add Lesson</h3>
+            
+            <div class="form-group">
+                <label for="lessonText">Lesson Info / Subject</label>
+                <input type="text" id="lessonText" placeholder="e.g. Piano - 4:00 PM">
+            </div>
+
+            <div class="form-group">
+                <label>Color Label</label>
+                <div class="color-pickers" id="colorPickers">
+                    <div class="color-option selected" data-color="#4f46e5" style="background: #4f46e5;"></div>
+                    <div class="color-option" data-color="#059669" style="background: #059669;"></div>
+                    <div class="color-option" data-color="#d97706" style="background: #d97706;"></div>
+                    <div class="color-option" data-color="#dc2626" style="background: #dc2626;"></div>
+                    <div class="color-option" data-color="#7c3aed" style="background: #7c3aed;"></div>
+                    <div class="color-option" data-color="#db2777" style="background: #db2777;"></div>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn-danger" id="btnDeleteLesson" style="display:none; margin-right: auto;" onclick="deleteLesson()">Delete</button>
+                <button class="btn-secondary" onclick="closeModal('lessonModal')">Cancel</button>
+                <button class="btn-primary" onclick="saveLesson()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- New Student Modal -->
+    <div class="modal-overlay" id="studentModal">
+        <div class="modal">
+            <h3>Create New Student Profile</h3>
+            <div class="form-group">
+                <label for="newStudentName">Student Full Name</label>
+                <input type="text" id="newStudentName" placeholder="e.g. Emma Watson">
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('studentModal')">Cancel</button>
+                <button class="btn-primary" onclick="createNewStudent()">Create</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manage Students Modal -->
+    <div class="modal-overlay" id="manageModal">
+        <div class="modal">
+            <h3>Manage Student Profiles</h3>
+            <p style="font-size:0.85rem; color: var(--text-muted);">Remove profiles that are no longer needed:</p>
+            
+            <div class="item-list" id="manageStudentList"></div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('manageModal')">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Version History Modal -->
+    <div class="modal-overlay" id="historyModal">
+        <div class="modal">
+            <h3>Schedule Version History</h3>
+            <p style="font-size:0.85rem; color: var(--text-muted);">Select a previous snapshot to restore:</p>
+            
+            <div class="item-list" id="versionList"></div>
+
+            <div class="modal-actions">
+                <button class="btn-secondary" onclick="closeModal('historyModal')">Close</button>
+                <button class="btn-primary" onclick="createManualSnapshot()">Create Snapshot</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const monthNames = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ];
+
+        let activeYear = 2026;
+        let activeMonthIndex = 0;
+        let selectedColor = '#4f46e5';
+        let currentTargetKey = null;
+        let editingLessonIndex = null;
+
+        let appData = {
+            currentStudentId: 'std_default',
+            students: {
+                'std_default': { name: 'Alex Smith' }
+            },
+            schedules: {
+                'std_default': {} // Key format: "YYYY-M-D"
+            },
+            history: {
+                'std_default': []
+            }
+        };
+
+        const studentSelect = document.getElementById('studentSelect');
+        const tabsContainer = document.getElementById('tabsContainer');
+        const daysGrid = document.getElementById('daysGrid');
+        const calendarMonthTitle = document.getElementById('calendarMonthTitle');
+        const calendarStudentTitle = document.getElementById('calendarStudentTitle');
+        const yearDisplay = document.getElementById('yearDisplay');
+        const lessonTextInput = document.getElementById('lessonText');
+        const btnDeleteLesson = document.getElementById('btnDeleteLesson');
+
+        function init() {
+            loadFromLocalStorage();
+            renderStudentDropdown();
+            renderTabs();
+            renderCalendar(activeMonthIndex, activeYear);
+
+            document.querySelectorAll('#colorPickers .color-option').forEach(opt => {
+                opt.addEventListener('click', (e) => {
+                    document.querySelectorAll('#colorPickers .color-option').forEach(c => c.classList.remove('selected'));
+                    e.target.classList.add('selected');
+                    selectedColor = e.target.getAttribute('data-color');
+                });
+            });
+        }
+
+        // Universal Dynamic Calendar Helper
+        function getMonthConfig(year, monthIdx) {
+            const firstDay = new Date(year, monthIdx, 1).getDay(); // 0 = Sun, 1 = Mon, ...
+            const totalDays = new Date(year, monthIdx + 1, 0).getDate(); // Total days in month
+            return { days: totalDays, startDay: firstDay };
+        }
+
+        function changeYear(delta) {
+            activeYear += delta;
+            yearDisplay.textContent = activeYear;
+            renderCalendar(activeMonthIndex, activeYear);
+        }
+
+        function saveToLocalStorage() {
+            localStorage.setItem('student_universal_scheduler', JSON.stringify(appData));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('student_universal_scheduler');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                } catch(e) {
+                    console.error("Could not parse saved storage data", e);
+                }
+            }
+        }
+
+        function recordVersionSnapshot(label = "Auto-save") {
+            const studentId = appData.currentStudentId;
+            if (!studentId) return;
+
+            if (!appData.history[studentId]) appData.history[studentId] = [];
+
+            const currentSchedule = appData.schedules[studentId] || {};
+            const snapshot = {
+                timestamp: new Date().toLocaleString(),
+                label: label,
+                data: JSON.parse(JSON.stringify(currentSchedule))
+            };
+
+            appData.history[studentId].unshift(snapshot);
+            if (appData.history[studentId].length > 15) {
+                appData.history[studentId].pop();
+            }
+
+            saveToLocalStorage();
+        }
+
+        function renderStudentDropdown() {
+            studentSelect.innerHTML = '';
+            const studentIds = Object.keys(appData.students);
+
+            if (studentIds.length === 0) {
+                const opt = document.createElement('option');
+                opt.textContent = "No Students";
+                studentSelect.appendChild(opt);
+                return;
+            }
+
+            studentIds.forEach(id => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = appData.students[id].name;
+                if (id === appData.currentStudentId) option.selected = true;
+                studentSelect.appendChild(option);
+            });
+        }
+
+        function switchStudent() {
+            appData.currentStudentId = studentSelect.value;
+            saveToLocalStorage();
+            renderCalendar(activeMonthIndex, activeYear);
+        }
+
+        function openNewStudentModal() {
+            document.getElementById('newStudentName').value = '';
+            document.getElementById('studentModal').style.display = 'flex';
+        }
+
+        function createNewStudent() {
+            const nameInput = document.getElementById('newStudentName').value.trim();
+            if (!nameInput) return;
+
+            const newId = 'std_' + Date.now();
+            appData.students[newId] = { name: nameInput };
+            appData.schedules[newId] = {};
+            appData.history[newId] = [];
+            appData.currentStudentId = newId;
+
+            saveToLocalStorage();
+            renderStudentDropdown();
+            closeModal('studentModal');
+            renderCalendar(activeMonthIndex, activeYear);
+        }
+
+        function openManageStudentsModal() {
+            const listEl = document.getElementById('manageStudentList');
+            listEl.innerHTML = '';
+            const studentIds = Object.keys(appData.students);
+
+            if (studentIds.length === 0) {
+                listEl.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:0.85rem;">No student profiles found.</div>';
+            } else {
+                studentIds.forEach(id => {
+                    const row = document.createElement('div');
+                    row.className = 'list-row';
+                    
+                    const isCurrent = id === appData.currentStudentId;
+                    
+                    row.innerHTML = `
+                        <div class="row-info">
+                            <span class="row-title">${appData.students[id].name} ${isCurrent ? '<small style="color:var(--primary);">(Active)</small>' : ''}</span>
+                        </div>
+                        <button class="btn-danger" style="padding:4px 10px; font-size:0.75rem;" onclick="deleteStudent('${id}')">Delete</button>
+                    `;
+                    listEl.appendChild(row);
+                });
+            }
+
+            document.getElementById('manageModal').style.display = 'flex';
+        }
+
+        function deleteStudent(id) {
+            const studentName = appData.students[id] ? appData.students[id].name : 'this student';
+            if (!confirm(`Are you sure you want to delete "${studentName}"? All scheduled lessons and history for this student will be permanently removed.`)) {
+                return;
+            }
+
+            delete appData.students[id];
+            delete appData.schedules[id];
+            delete appData.history[id];
+
+            const remainingIds = Object.keys(appData.students);
+            if (appData.currentStudentId === id) {
+                appData.currentStudentId = remainingIds.length > 0 ? remainingIds[0] : null;
+            }
+
+            saveToLocalStorage();
+            renderStudentDropdown();
+            openManageStudentsModal();
+            renderCalendar(activeMonthIndex, activeYear);
+        }
+
+        function renderTabs() {
+            tabsContainer.innerHTML = '';
+            monthNames.forEach((name, index) => {
+                const btn = document.createElement('button');
+                btn.className = `tab-btn ${index === activeMonthIndex ? 'active' : ''}`;
+                btn.textContent = name.substring(0, 3);
+                btn.onclick = () => {
+                    activeMonthIndex = index;
+                    document.querySelectorAll('.tab-btn').forEach((b, i) => {
+                        b.classList.toggle('active', i === index);
+                    });
+                    renderCalendar(activeMonthIndex, activeYear);
+                };
+                tabsContainer.appendChild(btn);
+            });
+        }
+
+        function renderCalendar(monthIdx, year) {
+            const config = getMonthConfig(year, monthIdx);
+            const student = appData.currentStudentId ? appData.students[appData.currentStudentId] : null;
+            const schedule = (appData.currentStudentId && appData.schedules[appData.currentStudentId]) || {};
+
+            calendarMonthTitle.textContent = `${monthNames[monthIdx]} ${year}`;
+            calendarStudentTitle.textContent = `${student ? student.name : 'No Student Selected'}'s Schedule`;
+            yearDisplay.textContent = year;
+            daysGrid.innerHTML = '';
+
+            for (let i = 0; i < config.startDay; i++) {
+                const emptyCell = document.createElement('div');
+                emptyCell.className = 'day-cell empty';
+                daysGrid.appendChild(emptyCell);
+            }
+
+            for (let day = 1; day <= config.days; day++) {
+                const dayCell = document.createElement('div');
+                dayCell.className = 'day-cell';
+                
+                const dayNum = document.createElement('span');
+                dayNum.className = 'day-number';
+                dayNum.textContent = day;
+                dayCell.appendChild(dayNum);
+
+                const dateKey = `${year}-${monthIdx}-${day}`;
+                
+                if (schedule[dateKey]) {
+                    schedule[dateKey].forEach((lesson, lIdx) => {
+                        const slot = document.createElement('div');
+                        slot.className = 'lesson-slot';
+                        slot.style.backgroundColor = lesson.color;
+                        slot.textContent = lesson.text;
+                        slot.onclick = (e) => {
+                            e.stopPropagation();
+                            openLessonModal(dateKey, lIdx);
+                        };
+                        dayCell.appendChild(slot);
+                    });
+                }
+
+                if (appData.currentStudentId) {
+                    const addBtn = document.createElement('button');
+                    addBtn.className = 'btn-add-lesson';
+                    addBtn.textContent = '+ Add Slot';
+                    addBtn.onclick = () => openLessonModal(dateKey, null);
+                    dayCell.appendChild(addBtn);
+                }
+
+                daysGrid.appendChild(dayCell);
+            }
+        }
+
+        function openLessonModal(dateKey, lessonIndex) {
+            if (!appData.currentStudentId) {
+                alert("Please select or create a student first.");
+                return;
+            }
+
+            currentTargetKey = dateKey;
+            editingLessonIndex = lessonIndex;
+            const schedule = appData.schedules[appData.currentStudentId] || {};
+
+            if (lessonIndex !== null) {
+                const lesson = schedule[dateKey][lessonIndex];
+                lessonTextInput.value = lesson.text;
+                selectedColor = lesson.color;
+                document.getElementById('modalTitle').textContent = 'Edit Lesson Slot';
+                btnDeleteLesson.style.display = 'block';
+            } else {
+                lessonTextInput.value = '';
+                document.getElementById('modalTitle').textContent = 'Add Lesson Slot';
+                btnDeleteLesson.style.display = 'none';
+            }
+
+            document.querySelectorAll('#colorPickers .color-option').forEach(opt => {
+                opt.classList.toggle('selected', opt.getAttribute('data-color') === selectedColor);
+            });
+
+            document.getElementById('lessonModal').style.display = 'flex';
+            lessonTextInput.focus();
+        }
+
+        function saveLesson() {
+            const text = lessonTextInput.value.trim();
+            if (!text || !appData.currentStudentId) return;
+
+            recordVersionSnapshot("Pre-change Backup");
+
+            const studentId = appData.currentStudentId;
+            if (!appData.schedules[studentId]) appData.schedules[studentId] = {};
+
+            if (!appData.schedules[studentId][currentTargetKey]) {
+                appData.schedules[studentId][currentTargetKey] = [];
+            }
+
+            if (editingLessonIndex !== null) {
+                appData.schedules[studentId][currentTargetKey][editingLessonIndex] = { text, color: selectedColor };
+            } else {
+                appData.schedules[studentId][currentTargetKey].push({ text, color: selectedColor });
+            }
+
+            saveToLocalStorage();
+            closeModal('lessonModal');
+            renderCalendar(activeMonthIndex, activeYear);
+        }
+
+        function deleteLesson() {
+            const studentId = appData.currentStudentId;
+            if (studentId && currentTargetKey !== null && editingLessonIndex !== null) {
+                recordVersionSnapshot("Pre-delete Backup");
+                appData.schedules[studentId][currentTargetKey].splice(editingLessonIndex, 1);
+                if (appData.schedules[studentId][currentTargetKey].length === 0) {
+                    delete appData.schedules[studentId][currentTargetKey];
+                }
+                saveToLocalStorage();
+            }
+            closeModal('lessonModal');
+            renderCalendar(activeMonthIndex, activeYear);
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        function openHistoryModal() {
+            const studentId = appData.currentStudentId;
+            const history = studentId ? (appData.history[studentId] || []) : [];
+            const listEl = document.getElementById('versionList');
+            listEl.innerHTML = '';
+
+            if (history.length === 0) {
+                listEl.innerHTML = '<div style="padding:16px; text-align:center; color:var(--text-muted); font-size:0.85rem;">No previous versions recorded yet.</div>';
+            } else {
+                history.forEach((version, idx) => {
+                    const row = document.createElement('div');
+                    row.className = 'list-row';
+                    row.innerHTML = `
+                        <div class="row-info">
+                            <span class="row-title">${version.timestamp}</span>
+                            <span class="row-subtitle">${version.label}</span>
+                        </div>
+                        <button class="btn-action" style="padding:4px 8px; font-size:0.75rem;" onclick="restoreVersion(${idx})">Restore</button>
+                    `;
+                    listEl.appendChild(row);
+                });
+            }
+
+            document.getElementById('historyModal').style.display = 'flex';
+        }
+
+        function createManualSnapshot() {
+            if (!appData.currentStudentId) return;
+            recordVersionSnapshot("Manual Snapshot");
+            openHistoryModal();
+        }
+
+        function restoreVersion(idx) {
+            const studentId = appData.currentStudentId;
+            const snapshot = appData.history[studentId][idx];
+            if (!snapshot) return;
+
+            if (confirm(`Restore schedule from ${snapshot.timestamp}? Current unsaved edits will be overwritten.`)) {
+                appData.schedules[studentId] = JSON.parse(JSON.stringify(snapshot.data));
+                saveToLocalStorage();
+                closeModal('historyModal');
+                renderCalendar(activeMonthIndex, activeYear);
+            }
+        }
+
+        function exportToPNG() {
+            const config = getMonthConfig(activeYear, activeMonthIndex);
+            const monthName = monthNames[activeMonthIndex];
+            const student = appData.currentStudentId ? appData.students[appData.currentStudentId] : null;
+            const studentName = student ? student.name : 'No_Student';
+            const schedule = (appData.currentStudentId && appData.schedules[appData.currentStudentId]) || {};
+
+            const canvas = document.createElement('canvas');
+            const scale = 2;
+            const padding = 24;
+            const gridGap = 8;
+            const cellWidth = 140;
+            const cellMinHeight = 110;
+            const headerHeight = 70;
+            const weekdayHeaderHeight = 30;
+
+            const totalCols = 7;
+            const totalDays = config.startDay + config.days;
+            const totalRows = Math.ceil(totalDays / totalCols);
+
+            const canvasWidth = (padding * 2) + (totalCols * cellWidth) + ((totalCols - 1) * gridGap);
+            const canvasHeight = (padding * 2) + headerHeight + weekdayHeaderHeight + (totalRows * cellMinHeight) + ((totalRows - 1) * gridGap);
+
+            canvas.width = canvasWidth * scale;
+            canvas.height = canvasHeight * scale;
+
+            const ctx = canvas.getContext('2d');
+            ctx.scale(scale, scale);
+
+            function drawRoundedRect(x, y, w, h, radius, fillStyle, strokeStyle) {
+                ctx.beginPath();
+                ctx.roundRect(x, y, w, h, radius);
+                if (fillStyle) {
+                    ctx.fillStyle = fillStyle;
+                    ctx.fill();
+                }
+                if (strokeStyle) {
+                    ctx.strokeStyle = strokeStyle;
+                    ctx.stroke();
+                }
+            }
+
+            drawRoundedRect(0, 0, canvasWidth, canvasHeight, 16, '#ffffff', '#e2e8f0');
+
+            ctx.fillStyle = '#4f46e5';
+            ctx.font = 'bold 24px -apple-system, sans-serif';
+            ctx.fillText(`${monthName} ${activeYear}`, padding, padding + 30);
+
+            ctx.fillStyle = '#64748b';
+            ctx.font = '600 15px -apple-system, sans-serif';
+            ctx.textAlign = 'right';
+            ctx.fillText(`Student: ${studentName}`, canvasWidth - padding, padding + 30);
+            ctx.textAlign = 'left';
+
+            ctx.strokeStyle = '#f8fafc';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(padding, padding + 50);
+            ctx.lineTo(canvasWidth - padding, padding + 50);
+            ctx.stroke();
+
+            const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            ctx.fillStyle = '#64748b';
+            ctx.font = 'bold 12px -apple-system, sans-serif';
+            
+            const startY = padding + headerHeight;
+            weekdays.forEach((day, idx) => {
+                const x = padding + idx * (cellWidth + gridGap) + (cellWidth / 2);
+                ctx.textAlign = 'center';
+                ctx.fillText(day.toUpperCase(), x, startY);
+            });
+            ctx.textAlign = 'left';
+
+            let currentCellIndex = 0;
+            const gridStartY = startY + 15;
+
+            for (let row = 0; row < totalRows; row++) {
+                for (let col = 0; col < totalCols; col++) {
+                    const x = padding + col * (cellWidth + gridGap);
+                    const y = gridStartY + row * (cellMinHeight + gridGap);
+
+                    if (currentCellIndex >= config.startDay && currentCellIndex < totalDays) {
+                        const dayNum = currentCellIndex - config.startDay + 1;
+                        const dateKey = `${activeYear}-${activeMonthIndex}-${dayNum}`;
+
+                        drawRoundedRect(x, y, cellWidth, cellMinHeight, 8, '#fafafa', '#e2e8f0');
+
+                        ctx.fillStyle = '#64748b';
+                        ctx.font = 'bold 13px -apple-system, sans-serif';
+                        ctx.fillText(dayNum, x + 8, y + 20);
+
+                        if (schedule[dateKey]) {
+                            let slotY = y + 30;
+                            schedule[dateKey].forEach(lesson => {
+                                drawRoundedRect(x + 6, slotY, cellWidth - 12, 24, 6, lesson.color);
+                                
+                                ctx.fillStyle = '#ffffff';
+                                ctx.font = 'bold 11px -apple-system, sans-serif';
+                                
+                                let text = lesson.text;
+                                if (ctx.measureText(text).width > cellWidth - 24) {
+                                    while (text.length > 0 && ctx.measureText(text + '...').width > cellWidth - 24) {
+                                        text = text.slice(0, -1);
+                                    }
+                                    text += '...';
+                                }
+
+                                ctx.fillText(text, x + 12, slotY + 16);
+                                slotY += 28;
+                            });
+                        }
+                    }
+                    currentCellIndex++;
+                }
+            }
+
+            const a = document.createElement('a');
+            const sanitizedStudent = studentName.replace(/\s+/g, '_');
+            a.download = `${sanitizedStudent}_${monthName}_${activeYear}_Schedule.png`;
+            a.href = canvas.toDataURL('image/png');
+            a.click();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
